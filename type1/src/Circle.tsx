@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
 
 const Container = styled.div<CotainerProps>`
@@ -22,6 +22,9 @@ interface CircleProps {
 // Container가 받는 props를 타입스크립트에세 잘 설명해준다
 
 function Circle({ bgColor, borderColor, text = "default text" }: CircleProps) {
+  const [value, setValue] = useState(0);
+  setValue(2);
+  setValue("ho");
   return (
     <Container bgColor={bgColor} borderColor={borderColor ?? bgColor}>
       {/* 초기값은 borderColor이고 props로 받는게 없다면 undefined이면 bgColor로 해줘라. */}
