@@ -1,4 +1,10 @@
-import { useLocation, useParams } from "react-router";
+import {
+  useLocation,
+  useParams,
+  Outlet,
+  Link,
+  useMatch,
+} from "react-router-dom";
 import styled from "styled-components";
 import { useState, useEffect } from "react";
 import axios from "axios";
@@ -50,6 +56,28 @@ const OverviewItem = styled.div`
 
 const Description = styled.p`
   margin: 20px 0px;
+`;
+
+const Tabs = styled.div`
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  margin: 25px 0px;
+  gap: 10px;
+`;
+
+const Tab = styled.span<{ isActive: boolean }>`
+  text-align: center;
+  text-transform: uppercase;
+  font-size: 12px;
+  font-weight: 400;
+  background-color: rgba(0, 0, 0, 0.5);
+  padding: 7px 0px;
+  border-radius: 10px;
+  color: ${(props) =>
+    props.isActive ? props.theme.accentColor : props.theme.textColor};
+  a {
+    display: block;
+  }
 `;
 
 interface RouteState {
@@ -120,19 +148,26 @@ function Coin() {
   console.log(coinId); //Coin의 주소를 받아옴.
   const [info, setInfo] = useState<InfoData>();
   const [priceInfo, setPriceInfo] = useState<PriceData>();
+  const priceMatch = useMatch("/:coinId/price");
+  const chartMatch = useMatch("/:coinId/chart");
+  console.log(priceMatch);
 
   const getCoin = async () => {
-    const coinData = await axios(
-      `https://api.coinpaprika.com/v1/coins/${coinId}`
-    );
-    const priceData = await axios(
-      `https://api.coinpaprika.com/v1/tickers/${coinId}`
-    );
-    setInfo(coinData.data);
-    console.log(coinData.data);
-    setPriceInfo(priceData.data);
-    console.log(priceData.data);
-    setLoading(false);
+    try {
+      const coinData = await axios(
+        `https://api.coinpaprika.com/v1/coins/${coinId}`
+      );
+      const priceData = await axios(
+        `https://api.coinpaprika.com/v1/tickers/${coinId}`
+      );
+      setInfo(coinData.data);
+      console.log(coinData.data);
+      setPriceInfo(priceData.data);
+      console.log(priceData.data);
+      setLoading(false);
+    } catch (error: any) {
+      console.log(error);
+    }
   };
 
   useEffect(() => {
@@ -140,7 +175,6 @@ function Coin() {
   }, [coinId]);
 
   const { state } = useLocation() as RouteState; //coin.name정보가 들어있다
-  console.log(state.name);
 
   return (
     <Container>
@@ -178,6 +212,16 @@ function Coin() {
               <span>{priceInfo?.max_supply}</span>
             </OverviewItem>
           </Overview>
+
+          <Tabs>
+            <Tab isActive={chartMatch !== null}>
+              <Link to={`/${coinId}/chart`}>Chart</Link>
+            </Tab>
+            <Tab isActive={priceMatch !== null}>
+              <Link to={`/${coinId}/price`}>Price</Link>
+            </Tab>
+          </Tabs>
+          <Outlet />
         </>
       )}
     </Container>
