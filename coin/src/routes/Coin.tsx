@@ -6,8 +6,10 @@ import {
   useMatch,
 } from "react-router-dom";
 import styled from "styled-components";
-import { useState, useEffect } from "react";
-import axios from "axios";
+// import { useState, useEffect } from "react";
+// import axios from "axios";
+import { useQuery } from "@tanstack/react-query";
+import { coinUrl, priceUrl } from "../api";
 
 const Container = styled.div`
   padding: 0px 20px;
@@ -143,44 +145,51 @@ interface PriceData {
 }
 
 function Coin() {
-  const [loading, setLoading] = useState(true);
   const { coinId } = useParams<{ coinId: string }>();
-  console.log(coinId); //Coin의 주소를 받아옴.
-  const [info, setInfo] = useState<InfoData>();
-  const [priceInfo, setPriceInfo] = useState<PriceData>();
+  const { state } = useLocation() as RouteState; //coin.name정보가 들어있다
   const priceMatch = useMatch("/:coinId/price");
   const chartMatch = useMatch("/:coinId/chart");
-  console.log(priceMatch);
+  const { isLoading: infoLoading, data: infoData } = useQuery<InfoData>(
+    ["info", coinId],
+    () => coinUrl(coinId)
+  );
+  const { isLoading: tickersLoading, data: tickersData } = useQuery<PriceData>(
+    ["tickers", coinId],
+    () => priceUrl(coinId)
+  );
+  // const [loading, setLoading] = useState(true);
+  // const [info, setInfo] = useState<InfoData>();
+  // const [priceInfo, setPriceInfo] = useState<PriceData>();
 
-  const getCoin = async () => {
-    try {
-      const coinData = await axios(
-        `https://api.coinpaprika.com/v1/coins/${coinId}`
-      );
-      const priceData = await axios(
-        `https://api.coinpaprika.com/v1/tickers/${coinId}`
-      );
-      setInfo(coinData.data);
-      console.log(coinData.data);
-      setPriceInfo(priceData.data);
-      console.log(priceData.data);
-      setLoading(false);
-    } catch (error: any) {
-      console.log(error);
-    }
-  };
+  // const getCoin = async () => {
+  //   try {
+  //     const coinData = await axios(
+  //       `https://api.coinpaprika.com/v1/coins/${coinId}`
+  //     );
+  //     const priceData = await axios(
+  //       `https://api.coinpaprika.com/v1/tickers/${coinId}`
+  //     );
+  //     setInfo(coinData.data);
+  //     console.log(coinData.data);
+  //     setPriceInfo(priceData.data);
+  //     console.log(priceData.data);
+  //     setLoading(false);
+  //   } catch (error: any) {
+  //     console.log(error);
+  //   }
+  // };
 
-  useEffect(() => {
-    getCoin();
-  }, [coinId]);
+  // useEffect(() => {
+  //   getCoin();
+  // }, [coinId]);
 
-  const { state } = useLocation() as RouteState; //coin.name정보가 들어있다
+  const loading = infoLoading || tickersLoading;
 
   return (
     <Container>
       <Header>
         <Title>
-          {state?.name ? state.name : loading ? "Loading..." : info?.name}
+          {state?.name ? state.name : loading ? "Loading..." : infoData?.name}
         </Title>
       </Header>
       {loading ? (
@@ -190,26 +199,26 @@ function Coin() {
           <Overview>
             <OverviewItem>
               <span>Rank:</span>
-              <span>{info?.rank}</span>
+              <span>{infoData?.rank}</span>
             </OverviewItem>
             <OverviewItem>
               <span>Symbol:</span>
-              <span>{info?.symbol}</span>
+              <span>{infoData?.symbol}</span>
             </OverviewItem>
             <OverviewItem>
               <span>Open Sourcl:</span>
-              <span>{info?.open_source ? "Yes" : "No"}</span>
+              <span>{infoData?.open_source ? "Yes" : "No"}</span>
             </OverviewItem>
           </Overview>
-          <Description>{info?.description}</Description>
+          <Description>{infoData?.description}</Description>
           <Overview>
             <OverviewItem>
               <span>Total Suply:</span>
-              <span>{priceInfo?.total_supply}</span>
+              <span>{tickersData?.total_supply}</span>
             </OverviewItem>
             <OverviewItem>
               <span>Total Suply:</span>
-              <span>{priceInfo?.max_supply}</span>
+              <span>{tickersData?.max_supply}</span>
             </OverviewItem>
           </Overview>
 

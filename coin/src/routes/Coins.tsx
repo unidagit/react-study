@@ -1,7 +1,9 @@
 import styled from "styled-components";
 import { Link } from "react-router-dom";
-import { useEffect, useState } from "react";
-import axios from "axios";
+import { useQuery } from "@tanstack/react-query";
+// import { useEffect, useState } from "react";
+// import axios from "axios";
+import { fetchCoins } from "../api";
 
 const Container = styled.div`
   padding: 0px 20px;
@@ -64,29 +66,35 @@ interface CoinInterface {
 }
 
 function Coins() {
-  const [coins, setCoins] = useState<CoinInterface[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { isLoading, data } = useQuery<CoinInterface[]>(
+    ["allCoins"],
+    fetchCoins
+  );
+  //useQuery hook이 fetchCoins를 불러온다
+  //그리고 fetcher함수가 isLoading이라면 리액트쿼리가 말해준다
+  //fetchCoins가 끝나면 리액트쿼리는 그함수의 데이터를 data에 넣어준다
+  // const [coins, setCoins] = useState<CoinInterface[]>([]);
+  // const [loading, setLoading] = useState(true);
+  // const getCoins = async () => {
+  //   const res = await axios("https://api.coinpaprika.com/v1/coins");
+  //   setCoins(res.data.slice(0, 100));
+  //   setLoading(false);
+  // };
 
-  const getCoins = async () => {
-    const res = await axios("https://api.coinpaprika.com/v1/coins");
-    setCoins(res.data.slice(0, 100));
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    getCoins();
-  });
+  // useEffect(() => {
+  //   getCoins();
+  // });
 
   return (
     <Container>
       <Header>
         <Title>코인</Title>
       </Header>
-      {loading ? (
+      {isLoading ? (
         <Loader>loading</Loader>
       ) : (
         <CoinsList>
-          {coins.map((coin) => (
+          {data?.slice(0, 100).map((coin) => (
             <Coin key={coin.id}>
               <Link to={`/${coin.id}`} state={{ name: coin.name }}>
                 <Img
